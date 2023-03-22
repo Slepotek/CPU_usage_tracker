@@ -5,7 +5,17 @@ cmake_minimum_required(VERSION 3.5)
 project(CPUsageTracker LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 
-#Include toolchain file
+
+
+#Set the C compiler for the environment variable CC
+if(DEFINED ENV{CC})
+    #acquire the compiler from CC variable
+    set(CMAKE_C_COMPILER $ENV{CC})
+endif()
+
+message("The compiler is ${CMAKE_C_COMPILER_ID}")
+
+#Include toolchain file for default behaviour
 include(${PROJECT_SOURCE_DIR}/toolchain.cmake)
 
 #add subdirectories
