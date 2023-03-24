@@ -15,7 +15,7 @@ endif()
 
 message("The compiler is ${CMAKE_C_COMPILER_ID}")
 
-#Include toolchain file for default behaviour
+#Include toolchain file with compiler specific flags
 include(${PROJECT_SOURCE_DIR}/toolchain.cmake)
 
 #add subdirectories
