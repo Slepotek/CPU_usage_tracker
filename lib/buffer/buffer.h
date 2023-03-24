@@ -1,6 +1,6 @@
 #pragma once
 
-#define BUFFER_SIZE 3
+#define BUFFER_SIZE 4
 
 typedef struct ring_buffer {
     void* buffer; //the data

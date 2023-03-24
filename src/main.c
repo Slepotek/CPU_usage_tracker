@@ -17,7 +17,7 @@ static pthread_t reader, analyzer, printer; //thread declaration
 
 int main(void)
 {
-    ring_buffer* buffer = (ring_buffer*)malloc(sizeof(ring_buffer)); //buffer variable
+    ring_buffer* buffer = malloc(sizeof(ring_buffer) + ((sizeof(struct stats_cpu) * (u_long)sysconf(_SC_NPROCESSORS_ONLN)) * BUFFER_SIZE)); //buffer variable
     ring_buffer_init(buffer); //initialize the ring buffer
  
 

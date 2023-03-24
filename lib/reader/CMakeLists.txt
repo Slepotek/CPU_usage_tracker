@@ -2,16 +2,15 @@
 add_library(reader_lib reader.c)
 
 #set include directory so that any *.h file will be visible to the compiler 
-target_include_directories(reader_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>,
-                                                ${CMAKE_SOURCE_DIR}/lib/reader) #TODO: Think about adding install case
+target_include_directories(reader_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>) #TODO: Think about adding install case
 
-#tests
+#TEST implementation
 #add executable
 add_executable(reader_test ${PROJECT_SOURCE_DIR}/lib/reader/test_reader.c)
 
 #Link the test executable with the program to test
 target_link_libraries(reader_test reader_lib)
-#configure_file(test_text test_text COPYONLY)
+#move neccessary test_text to build directory
 add_custom_command(
     TARGET reader_test
     POST_BUILD

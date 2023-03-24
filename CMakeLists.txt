@@ -40,7 +40,10 @@ target_link_libraries(CPUsageTracker
     #logger_lib
 )
 
+#TESTS
 enable_testing()
 
-#add test
+#reader TEST
 add_test(NAME ReaderTest COMMAND $<TARGET_FILE:reader_test>)
+#buffer TEST
+add_test(NAME BufferTest COMMAND $<TARGET_FILE:buffer_test>)
