@@ -20,6 +20,7 @@ include(${PROJECT_SOURCE_DIR}/toolchain.cmake)
 
 #add subdirectories
 add_subdirectory(lib/reader)
+add_subdirectory(lib/buffer)
 #add_subdirectory(lib/analyzer)
 #add_subdirectory(lib/printer)
 #add_subdirectory(lib/watchdog)
@@ -33,7 +34,13 @@ add_executable(CPUsageTracker ${PROJECT_SOURCE_DIR}/src/main.c)
 target_link_libraries(CPUsageTracker 
     #analyzer_lib
     reader_lib
+    buffer_lib
     #printer_lib
     #watchdog_lib
     #logger_lib
 )
+
+enable_testing()
+
+#add test
+add_test(NAME ReaderTest COMMAND $<TARGET_FILE:reader_test>)
