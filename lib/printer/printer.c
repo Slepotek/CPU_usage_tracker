@@ -10,7 +10,7 @@ void print_the_results (u_int *printArr)
 {
     int proc_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
     short sign = 35;
-    printf("\e[8;0H\e[0J");
+    printf("\e[8;0H\e[0J");//escape control sequence
     for (int i = 0; i < proc_num; i++)
     {
         short percent = (short)*printArr;
@@ -23,5 +23,5 @@ void print_the_results (u_int *printArr)
     }
     printf("=                                                           \n");
     printf("============================================================\n");
-    printf("Press 1 and Enter to close\n");
+    printf("Press any key to close\n");
 }

@@ -19,7 +19,9 @@ pthread_t reader, analyzer, printer; //thread declaration
 
 an_args *pass;
 
-volatile int process_end;
+//volatile int process_end;
+
+volatile sig_atomic_t t = 1;
 
 /// @brief Reader procedure - starts reading of the /proc/stat file, returns results to stats buffer and oversess access to stats buffer
 /// @param buff buffer with stats structure
@@ -32,13 +34,9 @@ void reader_procedure(ring_buffer *buff)
     double one_sec = WINDOW_TIME; //window time in secs
     struct stats_cpu *temp_d = (struct stats_cpu*)malloc(sizeof(struct stats_cpu) * proc_num); //initialize the temp variable for data 
     //memset(temp_d, 0, sizeof(struct stats_cpu) * proc_num);
-    while(1)
+    while(t)
     {
         //simple thread break (cleanup is at the end of each procedure)
-        if(process_end == 1)
-        {
-            break;
-        }
         start = clock(); //start the clock count
 
         read_stats(temp_d); //trigger /proc/stat file reading (no access controll - used only by one thread)
@@ -76,13 +74,9 @@ void analyze_stats (an_args *args)
     clock_t start, end;
     double cpu_time_used; //time passed in the procedure 
     double one_sec = WINDOW_TIME; //window time in secs
-    while (1)
+    while (t)
     {
         //simple thread break (cleanup is at the end of each procedure)
-        if(process_end == 1)
-        {
-            break;
-        }
         start = clock();
         //stats buffer operation
         sem_wait(&full);//set semaphore (decrement number of full slots in stats_buffer)
@@ -127,18 +121,12 @@ void print_stats(ring_buffer *buff)
     double cpu_time_used; //time passed in the procedure 
     double one_sec = WINDOW_TIME; //window time in secs
     u_int *toPrint = (u_int *)malloc(sizeof(u_int) * proc_num); //allocate results array
-
     printf("CPUsageTracker - mesures CPU usage over time\n");
     printf("Mesurement of stats is approximately in 1 sec intervals\n");
     printf("============================================================\n");
     printf("=                                                           \n");
-    while(1)
+    while(t)
     {
-        //simple thread break (cleanup is at the end of each procedure)
-        if(process_end == 1)
-        {
-            break;
-        }
         start = clock();
         //read from results buffer
         sem_wait(&full_r);

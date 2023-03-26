@@ -25,12 +25,23 @@ extern pthread_mutex_t conch, conch_r;
 extern pthread_t reader, analyzer, printer; //thread declaration
 
 extern an_args *pass;
-extern volatile int process_end;
+//extern volatile int process_end;
+extern volatile sig_atomic_t t;
+
+void terminate (int val) //leaved to expand functionality of this app
+{
+    t = 0;
+}
 
 int main(void)
 {
-    process_end = 0;
+    //process_end = 0;
     printf("Enetring initialization process\n");
+
+    struct sigaction action;
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = terminate;
+    sigaction(SIGTERM, &action, NULL);
     
     //buffers initialization
     printf("Allocating the buffer\n");
@@ -70,7 +81,8 @@ int main(void)
     pthread_create(&analyzer, NULL, analyze_proc, NULL);//run analyzer thread
     pthread_create(&printer, NULL, print_proc, NULL);//run print thread
 
-    scanf("%d", &process_end);
+    getchar();
+    terminate(1);
 
     //wait for the thread to finish
     pthread_join(reader, NULL);
