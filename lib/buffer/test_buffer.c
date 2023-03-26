@@ -7,7 +7,7 @@
 #include <assert.h>
 #include "buffer.h"
 #include "test_buffer.h"
-#include "../reader/reader.h"
+#include "../../src/structures.h"
 
 #define u_long unsigned long
 static sem_t empty, full;
@@ -18,11 +18,11 @@ static struct stats_cpu *test_var;
 int main (void)
 {
     //TEST Initialization
-    size_t m_buff_size = sizeof(ring_buffer) + ((sizeof(struct stats_cpu) * (u_long)sysconf(_SC_NPROCESSORS_ONLN)) * BUFFER_SIZE);
+    size_t m_buff_size = sizeof(ring_buffer);
     ring_buffer *rb = malloc(m_buff_size);
     test_var = malloc(sizeof(struct stats_cpu));
     memset(rb, 0, m_buff_size);
-    ring_buffer_init(rb);
+    stats_ring_buffer_init(rb);
     
     sem_init(&empty, 0, BUFFER_SIZE);
     sem_init(&full, 0, 0);
@@ -54,7 +54,7 @@ int main (void)
     printf("Ring buffer test succesfull\n");
 }
 
-void *producerSeq (ring_buffer *rb)
+void* producerSeq (ring_buffer *rb)
 {
     for(int i = 0; i <= 100; i++)
     {
@@ -65,9 +65,10 @@ void *producerSeq (ring_buffer *rb)
         sem_post(&full);
     }
     printf("Finished adding structures to buffer\n");
+    return 0;
 }
 
-void *consumerSeq (ring_buffer *rb)
+void* consumerSeq (ring_buffer *rb)
 {
     struct stats_cpu *istat = malloc(sizeof(struct stats_cpu));
     for(int i = 0; i <= 100; i++)
@@ -85,4 +86,5 @@ void *consumerSeq (ring_buffer *rb)
     }
     printf("Finished reading structures from buffer\n");
     free(istat);
+    return 0;
 }

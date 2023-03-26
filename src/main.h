@@ -1,7 +1,5 @@
-#pragma once //in other words #ifndef MAIN.H, #define MAIN.H
-#include "../lib/buffer/buffer.h"
+#pragma once 
 
-//TODO: write implementation comment
-static void *reader_procedure(ring_buffer *buff);
+void* analyze_proc (void *s);
 
-
+void* read_proc (void *s);

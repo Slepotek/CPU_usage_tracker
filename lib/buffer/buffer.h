@@ -1,18 +1,12 @@
 #pragma once
 
+#include "../../src/structures.h"
+
 #define BUFFER_SIZE 4
 
-typedef struct ring_buffer {
-    void* buffer; //the data
-    void* buffer_end; //the last element
-    size_t capacity; //the maximum number of elements in the buffer
-    size_t count; //current count of elements in the buffer
-    size_t size; //size of the data in the buffer (cpu_stat)
-    void* head; //write
-    void* tail; //read
-} ring_buffer;
+void stats_ring_buffer_init(ring_buffer* rb);
 
-void ring_buffer_init(ring_buffer* rb);
+void res_ring_buffer_init(ring_buffer* rb);
 
 void ring_buffer_free(ring_buffer* rb);
 
