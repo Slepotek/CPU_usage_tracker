@@ -2,7 +2,7 @@
 
 #include "../../src/structures.h"
 
-#define BUFFER_SIZE 4
+#define BUFFER_SIZE 10
 
 void stats_ring_buffer_init(ring_buffer* rb);
 

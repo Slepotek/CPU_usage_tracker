@@ -13,7 +13,7 @@ int test;//global test variable used in test_reader.c
 
 void read_stats(struct stats_cpu* _data)
 {
-    FILE *fp = malloc(sizeof(FILE));    //file structure (allocating memory for the structure to prevent sigsegv)
+    FILE *fp;    //file structure (allocating memory for the structure to prevent sigsegv)
     struct stats_cpu* idata;            //interfacing structure
     int num_proc = 0;                   //number of procesor (first structure is global, next one is cpu0)
     struct stats_cpu sc;                //helper structure
@@ -23,7 +23,8 @@ void read_stats(struct stats_cpu* _data)
     {
         if((fp = fopen("/home/marcel/Code/CPU_usage_tracker/build/lib/reader/test_text", "r")) == NULL)
         {
-        perror("Program was unable to open the file"); 
+            perror("Program was unable to open the /proc/stat file"); 
+            return;
         }
     }
     //if this is not a test then read real data
@@ -31,7 +32,8 @@ void read_stats(struct stats_cpu* _data)
     {
         if((fp = fopen(STAT, "r")) == NULL) //open file and check if it opened
         {
-        perror("Program was unable to open the file"); 
+            perror("Program was unable to open the /proc/stat file"); 
+            exit(0);
         }
     }
     while(fgets(line, sizeof(line), fp) != NULL) //get one line of the file (it doesn't have to be 8192 but usualy is)

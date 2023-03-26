@@ -18,10 +18,19 @@
 static ring_buffer* stat_buffer; //buffer for stats
 static ring_buffer* res_buffer; //buffer for results
 
+extern sem_t empty, full, empty_r, full_r;
+
+extern pthread_mutex_t conch, conch_r;
+
+extern pthread_t reader, analyzer, printer; //thread declaration
+
+extern an_args *pass;
+extern volatile int process_end;
+
 int main(void)
 {
+    process_end = 0;
     printf("Enetring initialization process\n");
-    proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN);
     
     //buffers initialization
     printf("Allocating the buffer\n");
@@ -29,21 +38,21 @@ int main(void)
     stat_buffer = (ring_buffer*)malloc(sizeof(ring_buffer));//memmory allocation
     if(stat_buffer == NULL)//check if the memmory was alocated
     {
-        perror("NULL exception in malloc");
+        perror("NULL exception in malloc\n");
     }
     stats_ring_buffer_init(stat_buffer); //initialize stats ring buffer
 
     res_buffer = (ring_buffer*)malloc(sizeof(ring_buffer));//memmory allocation
     if(res_buffer == NULL)//check if the memory was alocated
     {
-        perror("NULL exception in malloc");
+        perror("NULL exception in malloc\n");
     }
     res_ring_buffer_init(res_buffer);//initialize results ring buffer
 
     pass = (an_args*)malloc(sizeof(an_args));//allocate memory for args structure (arguments for analyze_stats procedure)
     if(pass == NULL)//check if the memory was alocated
     {
-        perror("NULL exception in malloc");
+        perror("NULL exception in malloc\n");
     }
     pass->res_buff = res_buffer;//assign res_buffer pointer to args
     pass->stat_buff = stat_buffer;//assign stat_buffer pointer to args
@@ -57,14 +66,19 @@ int main(void)
     sem_init(&full_r, 0, 0); //initialize the semaphore variable (full slots in buffer)
     pthread_mutex_init(&conch_r, NULL); //initialize the mutex
 
-    
     pthread_create(&reader, NULL, read_proc , NULL); //run the reader thread (the warning about bad conversion type can be overcomed by creating explicit function calling the base function - redundant code)
     pthread_create(&analyzer, NULL, analyze_proc, NULL);//run analyzer thread
+    pthread_create(&printer, NULL, print_proc, NULL);//run print thread
+
+    scanf("%d", &process_end);
 
     //wait for the thread to finish
     pthread_join(reader, NULL);
     pthread_join(analyzer, NULL);
+    pthread_join(printer, NULL);
     
+    printf("Gentle closing finished \n");
+
     //destroy semaphores and mutex
     sem_destroy(&empty);
     sem_destroy(&full);
@@ -78,6 +92,9 @@ int main(void)
     ring_buffer_free(stat_buffer);
     ring_buffer_free(res_buffer);
     free(pass);
+
+    printf("Resources freed\n");
+    printf("Closing...\n");
     return 0;
 }
 
@@ -90,5 +107,11 @@ void* read_proc (void *s)
 void* analyze_proc (void *s)
 {
     analyze_stats(pass);
+    return s;
+}
+
+void* print_proc (void *s)
+{
+    print_stats(res_buffer);
     return s;
 }

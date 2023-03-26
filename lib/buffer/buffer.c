@@ -57,7 +57,7 @@ static void* advance_pointer(void* ptr, size_t sz)
 /// @param item pointer to the data that is to be inserted into ring_buffer
 void ring_buffer_push(ring_buffer* rb, const void* item)
 {
-    if(rb->head == rb->buffer_end - rb->size) //if head of the buffer hit penultimate element
+    if(rb->head == (char*)rb->buffer_end - rb->size) //if head of the buffer hit penultimate element
     {
         memcpy(rb->head, item, rb->size);//firstly copy the data to the head address
         rb->head = rb->buffer; //move the buffer head to the begining of the buffer
@@ -82,7 +82,7 @@ void ring_buffer_pop(ring_buffer* rb, void* item)
     }
     //if there are elements in the buffer
     memcpy(item, rb->tail, rb->size); //firstly copy the memory
-    if(rb->tail == rb->buffer_end - rb->size) //check if the tail is at the penultimate element
+    if(rb->tail == (char*)rb->buffer_end - rb->size) //check if the tail is at the penultimate element
     {
         //if yes
         rb->tail = rb->buffer;//then return to the begining

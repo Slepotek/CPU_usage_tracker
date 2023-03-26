@@ -1,8 +1,8 @@
 # Define the toolchain for GCC
-set(CMAKE_C_FLAGS_GCC "-Wall -Wextra -Wpedantic")
+set(CMAKE_C_FLAGS_GCC "-Wall -Wextra -Wno-unused-function -Wno-incompatible-pointer-types")
 
 # Define the toolchain for Clang
-set(CMAKE_C_FLAGS_CLANG "-Weverything -Wno-c++98-compat")
+set(CMAKE_C_FLAGS_CLANG "-Weverything -Wno-c++98-compat -Wno-declaration-after-statement -Wno-unused-function -Wno-incompatible-function-pointer-types -Wno-pedantic -Wno-vla")
 
 # Define the toolchain selection logic
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")

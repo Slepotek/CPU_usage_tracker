@@ -22,7 +22,7 @@ include(${PROJECT_SOURCE_DIR}/toolchain.cmake)
 add_subdirectory(lib/reader)
 add_subdirectory(lib/buffer)
 add_subdirectory(lib/analyzer)
-#add_subdirectory(lib/printer)
+add_subdirectory(lib/printer)
 #add_subdirectory(lib/watchdog)
 #add_subdirectory(lib/logger)
 
@@ -30,7 +30,7 @@ add_subdirectory(lib/analyzer)
 add_library(main_p_lib src/main_p.c)
 
 #set include directory so that any *.h file will be visible to the compiler 
-target_include_directories(main_p_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>, lib/reader, lib/analyzer) #TODO: Think about adding install case
+target_include_directories(main_p_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>) #TODO: Think about adding install case
 
 #add the main executable
 add_executable(CPUsageTracker ${PROJECT_SOURCE_DIR}/src/main.c)
@@ -41,7 +41,7 @@ target_link_libraries(CPUsageTracker
     reader_lib
     buffer_lib
     main_p_lib
-    #printer_lib
+    printer_lib
     #watchdog_lib
     #logger_lib
 )
@@ -49,6 +49,7 @@ target_link_libraries(CPUsageTracker
 target_link_libraries(main_p_lib 
     analyzer_lib
     reader_lib
+    printer_lib
 )
 
 #TESTS

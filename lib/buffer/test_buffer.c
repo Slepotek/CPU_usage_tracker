@@ -9,7 +9,6 @@
 #include "test_buffer.h"
 #include "../../src/structures.h"
 
-#define u_long unsigned long
 static sem_t empty, full;
 static pthread_mutex_t conch;
 static pthread_t producer, consumer;
