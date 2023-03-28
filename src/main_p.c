@@ -18,17 +18,21 @@ static sem_t empty, full, empty_r, full_r;
 
 static pthread_mutex_t conch, conch_r;
 
-pthread_t reader, analyzer, printer, logger, watchdog; //thread declaration
+pthread_t reader, analyzer, printer, logger, watchdog, inputer; //thread declaration
 
 static an_args *pass;
 
 static time_t reader_last_activity, printer_last_activity, analyzer_last_activity, logger_last_activity;
 
 static volatile sig_atomic_t t = 1;
-volatile sig_atomic_t w = 1;
+static volatile sig_atomic_t w = 1;
+
+struct sigaction action2;//decalre sigaction structure (for SIGTERM)
+struct sigaction action;//decalre sigaction structure (for SIGTERM)
 
 void terminate (int sigint) //leaved to expand functionality of this app
 {
+    t = 0;
     w = 0;
 }
 
@@ -53,10 +57,11 @@ void initialize_program_variables(void)
 {
     printf("Enetring initialization process\n");
 
-    struct sigaction action;//decalre sigaction structure (for SIGTERM)
     memset(&action, 0, sizeof(struct sigaction));//clear the sigaction structure memory
     action.sa_handler = terminate; //assign a function to this action handler
     sigaction(SIGTERM, &action, NULL);//assign a signal value to the action structure
+ 
+
     
     //buffers initialization
     printf("Allocating the buffer\n");
@@ -150,6 +155,7 @@ void analyze_stats (an_args *args)
 {   
     //thread timeout init
     struct timespec a_timeout; //special structure for timeout
+    time_t timestamper = time(NULL);
 
     //helper variables init
     size_t proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN); //number of phisycial processors 
@@ -166,6 +172,10 @@ void analyze_stats (an_args *args)
     //main analyzer thread loop
     while (t)
     {
+        if((analyzer_last_activity - timestamper) == 10)
+        {
+            sleep(7);
+        }
         analyzer_last_activity = time(NULL);
         clock_gettime(CLOCK_REALTIME, &a_timeout); //acquire current time
         a_timeout.tv_sec += THREAD_TIMEOUT; //add thread timeout time to current time
@@ -296,72 +306,30 @@ void initialize_stats_var (struct stats_cpu *var, u_ll val)
 
 void watchdog_watch(void)
 {
-    short count = 0;
     while(w)
     {
         time_t timestamp = time(NULL);
-
         if(timestamp - reader_last_activity > TIMEOUT )
         {
-            t = 0;
-            count++;
-            //gently closing threads
-            system("clear");
-            printf("Shuting down reader...1");
-            pthread_join(reader, NULL);
-            printf("Shuting down analyzer...");
-            pthread_join(analyzer, NULL);
-            printf("Shuting down printer...");
-            pthread_join(printer, NULL);
-
-            //restarting threads
-            pthread_create(&reader, NULL, read_proc , NULL); 
-            pthread_create(&analyzer, NULL, analyze_proc, NULL);
-            pthread_create(&printer, NULL, print_proc, NULL);
+            //this will gently close the application
+            terminate(1);
         }
         if(timestamp - analyzer_last_activity > TIMEOUT )
         {
-            t = 0;
-            count++;
-            //gently closing threads
-            system("clear");
-            printf("Shuting down reader...2");
-            pthread_join(reader, NULL);
-            printf("Shuting down analyzer...");
-            pthread_join(analyzer, NULL);
-            printf("Shuting down printer...");
-            pthread_join(printer, NULL);
-
-            //restarting threads
-            pthread_create(&reader, NULL, read_proc , NULL); 
-            pthread_create(&analyzer, NULL, analyze_proc, NULL);
-            pthread_create(&printer, NULL, print_proc, NULL);
+            //this will gently close the application
+            terminate(1);
         }
         if(timestamp - printer_last_activity > TIMEOUT )
         {
-            t = 0;
-            count++;
-            //gently closing threads
-            system("clear");
-            printf("Shuting down reader...3");
-            pthread_join(reader, NULL);
-            printf("Shuting down analyzer...");
-            pthread_join(analyzer, NULL);
-            printf("Shuting down printer...");
-            pthread_join(printer, NULL);
-
-            //restarting threads
-            pthread_create(&reader, NULL, read_proc , NULL); 
-            pthread_create(&analyzer, NULL, analyze_proc, NULL);
-            pthread_create(&printer, NULL, print_proc, NULL);
-        }
-        if(count == TIMEOUT_COUNT)
-        {
             //this will gently close the application
-            t = 0; //this one signals work threads
-            w = 0; //this one signals watchdog
+            terminate(1);
         }
     }
+    pthread_join(reader, NULL);
+    pthread_join(analyzer, NULL);
+    pthread_join(printer, NULL);
+    pthread_cancel(inputer);
+    printf("Application closed due to thread time out.\n");
 }
 
 void* read_proc (void *s)
@@ -381,3 +349,10 @@ void* print_proc (void *s)
     print_stats(res_buffer);
     return s;
 }
+
+void inputer_check(void)
+{
+    getchar();
+    terminate(2);
+}
+

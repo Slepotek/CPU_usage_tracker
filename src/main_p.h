@@ -2,12 +2,11 @@
 #include "structures.h"
 #include <signal.h>
 #define WINDOW_TIME 2
-#define TIMEOUT 10
-#define TIMEOUT_COUNT 3
-#define THREAD_TIMEOUT 15 //this one should be always bigger number than TIMEOUT macro
+#define TIMEOUT 4
+#define THREAD_TIMEOUT 6 //this one should be always bigger number than TIMEOUT macro
 
-extern pthread_t reader, analyzer, printer, logger; //threads are external (linked to main - althought they didn't had to but i think it is more readable this way)
-extern volatile sig_atomic_t w;
+extern pthread_t reader, analyzer, printer, logger, watchdog, inputer; //threads are external (linked to main - althought they didn't had to but i think it is more readable this way)
+
 
 //TODO: write implementation comment
 void reader_procedure(ring_buffer *buff);
@@ -31,4 +30,7 @@ void initialize_program_variables(void);
 void destroy_leftovers(void);
 
 void watchdog_watch(void);
+
+void inputer_check(void);
+
 
