@@ -27,8 +27,7 @@ static time_t reader_last_activity, printer_last_activity, analyzer_last_activit
 static volatile sig_atomic_t t = 1;
 static volatile sig_atomic_t w = 1;
 
-struct sigaction action2;//decalre sigaction structure (for SIGTERM)
-struct sigaction action;//decalre sigaction structure (for SIGTERM)
+static struct sigaction action;//decalre sigaction structure (for SIGTERM)
 
 void terminate (int sigint) //leaved to expand functionality of this app
 {
@@ -60,8 +59,6 @@ void initialize_program_variables(void)
     memset(&action, 0, sizeof(struct sigaction));//clear the sigaction structure memory
     action.sa_handler = terminate; //assign a function to this action handler
     sigaction(SIGTERM, &action, NULL);//assign a signal value to the action structure
- 
-
     
     //buffers initialization
     printf("Allocating the buffer\n");
@@ -155,7 +152,6 @@ void analyze_stats (an_args *args)
 {   
     //thread timeout init
     struct timespec a_timeout; //special structure for timeout
-    time_t timestamper = time(NULL);
 
     //helper variables init
     size_t proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN); //number of phisycial processors 
@@ -172,10 +168,6 @@ void analyze_stats (an_args *args)
     //main analyzer thread loop
     while (t)
     {
-        if((analyzer_last_activity - timestamper) == 10)
-        {
-            sleep(7);
-        }
         analyzer_last_activity = time(NULL);
         clock_gettime(CLOCK_REALTIME, &a_timeout); //acquire current time
         a_timeout.tv_sec += THREAD_TIMEOUT; //add thread timeout time to current time
