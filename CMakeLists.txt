@@ -37,12 +37,7 @@ add_executable(CPUsageTracker ${PROJECT_SOURCE_DIR}/src/main.c)
 
 #link libraries
 target_link_libraries(CPUsageTracker 
-    analyzer_lib
-    reader_lib
-    buffer_lib
     main_p_lib
-    printer_lib
-    #watchdog_lib
     #logger_lib
 )
 
@@ -50,6 +45,7 @@ target_link_libraries(main_p_lib
     analyzer_lib
     reader_lib
     printer_lib
+    buffer_lib
 )
 
 #TESTS

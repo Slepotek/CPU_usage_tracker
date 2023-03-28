@@ -4,6 +4,7 @@
 
 #define u_int unsigned int
 #define u_ll unsigned long long
+#define u_long unsigned long
 
 typedef struct ring_buffer {
     void* buffer; //the data
