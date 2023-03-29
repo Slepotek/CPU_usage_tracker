@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include "main_p.h"
 #include "main.h"
+#include "../lib/logger/logger.h"
 
 extern pthread_t reader, analyzer, printer, logger, watchdog; //thread declaration
 extern volatile sig_atomic_t w;
@@ -14,6 +15,9 @@ extern volatile sig_atomic_t w;
 int main(void)
 {
     system("clear");
+    //logger_init(); //initialize logger
+    //pthread_create(&logger, NULL, logger_proc, NULL);
+    //log_line("Initializing program components");
     initialize_program_variables();
 
     pthread_create(&reader, NULL, read_proc , NULL); //run the reader thread (the warning about bad conversion type can be overcomed by creating explicit function calling the base function - redundant code)
@@ -34,7 +38,9 @@ int main(void)
     printf("Gentle closing finished \n");
 
     destroy_leftovers();
-
+    //logger_destroy();
+    //pthread_join(logger, NULL);
+    printf("Logger closed\n");
     printf("Resources freed\n");
     printf("Closed.\n");
     return 0;
@@ -43,5 +49,11 @@ int main(void)
 void* watchdog_proc (void *s)
 {
     watchdog_watch();
+    return s;
+}
+
+void* logger_proc(void *s)
+{
+    logger_main();
     return s;
 }
