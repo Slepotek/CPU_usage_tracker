@@ -24,10 +24,11 @@ static an_args *pass;
 
 static time_t reader_last_activity, printer_last_activity, analyzer_last_activity, logger_last_activity;
 
-static volatile sig_atomic_t t = 1;
-static volatile sig_atomic_t w = 1;
+volatile sig_atomic_t w;
+static volatile sig_atomic_t t;
 
-static struct sigaction action;//decalre sigaction structure (for SIGTERM)
+static struct sigaction actionTERM;//decalre sigaction structure (for SIGTERM)
+static struct sigaction actionINT;//decalre sigaction structure (for SIGTERM)
 
 void terminate (int sigint) //leaved to expand functionality of this app
 {
@@ -54,11 +55,17 @@ void destroy_leftovers(void)
 
 void initialize_program_variables(void)
 {
+    w = 1;
+    t = 1;
     printf("Enetring initialization process\n");
 
-    memset(&action, 0, sizeof(struct sigaction));//clear the sigaction structure memory
-    action.sa_handler = terminate; //assign a function to this action handler
-    sigaction(SIGTERM, &action, NULL);//assign a signal value to the action structure
+    memset(&actionTERM, 0, sizeof(struct sigaction));//clear the sigaction structure memory
+    actionTERM.sa_handler = terminate; //assign a function to this action handler
+    sigaction(SIGTERM, &actionTERM, NULL);//assign a signal value to the action structure
+
+    memset(&actionINT, 0, sizeof(struct sigaction));//clear the sigaction structure memory
+    actionINT.sa_handler = terminate; //assign a function to this action handler
+    sigaction(SIGINT, &actionINT, NULL);//assign a signal value to the action structure
     
     //buffers initialization
     printf("Allocating the buffer\n");
@@ -101,16 +108,16 @@ void initialize_program_variables(void)
 /// @param buff buffer with stats structure
 void reader_procedure(ring_buffer *buff)
 {   
+    reader_last_activity = time(NULL);
     //thread timeout initialization
     struct timespec r_timeout;
-
     size_t proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN); //number of phisycial processors 
     //the clock is used to match exactly 1 second window of mesurement
     clock_t start, end; //clock variables
     double cpu_time_used; //time passed in the procedure 
     double one_sec = WINDOW_TIME; //window time in secs
     struct stats_cpu *temp_d = (struct stats_cpu*)malloc(sizeof(struct stats_cpu) * proc_num); //initialize the temp variable for data 
-    //memset(temp_d, 0, sizeof(struct stats_cpu) * proc_num);
+    
     while(t)
     {
         reader_last_activity = time(NULL);
@@ -150,9 +157,11 @@ void reader_procedure(ring_buffer *buff)
 /// @param args structure with pointers to stats buffer and results buffer
 void analyze_stats (an_args *args)
 {   
+    analyzer_last_activity = time(NULL);
+    usleep(50000);
     //thread timeout init
     struct timespec a_timeout; //special structure for timeout
-
+    time_t secondT = time(NULL); //delete this one
     //helper variables init
     size_t proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN); //number of phisycial processors 
     size_t var_size = (size_t)(sizeof(struct stats_cpu) * (proc_num)); //size of the aray of stats_cpu structures
@@ -168,6 +177,10 @@ void analyze_stats (an_args *args)
     //main analyzer thread loop
     while (t)
     {
+        if(analyzer_last_activity - secondT > 10)
+        {
+            sleep(5);
+        }
         analyzer_last_activity = time(NULL);
         clock_gettime(CLOCK_REALTIME, &a_timeout); //acquire current time
         a_timeout.tv_sec += THREAD_TIMEOUT; //add thread timeout time to current time
@@ -217,6 +230,7 @@ void analyze_stats (an_args *args)
     free(results);
     free(prev);
     free(curr);
+    sleep(1);
     printf("Analyzer is finishing its execution \n");
 }
 
@@ -224,6 +238,8 @@ void analyze_stats (an_args *args)
 /// @param buff u_int array type that stores percentage values
 void print_stats(ring_buffer *buff)
 {
+    printer_last_activity = time(NULL);
+    sleep(1);
     struct timespec p_timeout;
     size_t proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN); //number of phisycial processors 
     clock_t start, end;
@@ -267,6 +283,9 @@ void print_stats(ring_buffer *buff)
         }
     }
     free(toPrint);
+    usleep(150000);
+    puts("Printer is closing");
+
 }
 
 /// @brief Initializes stats_cpu structure to given "val" value
@@ -298,6 +317,7 @@ void initialize_stats_var (struct stats_cpu *var, u_ll val)
 
 void watchdog_watch(void)
 {
+    sleep(2);
     while(w)
     {
         time_t timestamp = time(NULL);
@@ -305,23 +325,26 @@ void watchdog_watch(void)
         {
             //this will gently close the application
             terminate(1);
+            sleep(2);
+            puts("ERROR: TIMEOUT - Application closed due to thread time out.");
+
         }
         if(timestamp - analyzer_last_activity > TIMEOUT )
         {
             //this will gently close the application
             terminate(1);
+            sleep(2);
+            puts("ERROR: TIMEOUT - Application closed due to thread time out.");
+
         }
         if(timestamp - printer_last_activity > TIMEOUT )
         {
             //this will gently close the application
             terminate(1);
+            sleep(2);
+            puts("ERROR: TIMEOUT - Application closed due to thread time out.");
         }
     }
-    pthread_join(reader, NULL);
-    pthread_join(analyzer, NULL);
-    pthread_join(printer, NULL);
-    pthread_cancel(inputer);
-    printf("Application closed due to thread time out.\n");
 }
 
 void* read_proc (void *s)
@@ -340,11 +363,5 @@ void* print_proc (void *s)
 {
     print_stats(res_buffer);
     return s;
-}
-
-void inputer_check(void)
-{
-    getchar();
-    terminate(2);
 }
 

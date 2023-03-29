@@ -23,5 +23,5 @@ void print_the_results (u_int *printArr)
     }
     printf("=                                                           \n");
     printf("============================================================\n");
-    printf("Press any key to close\n");
+    fprintf(stdout, "Press CTRL + C to close: \n");
 }
