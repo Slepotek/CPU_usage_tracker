@@ -161,7 +161,6 @@ void analyze_stats (an_args *args)
     usleep(50000);
     //thread timeout init
     struct timespec a_timeout; //special structure for timeout
-    time_t secondT = time(NULL); //delete this one
     //helper variables init
     size_t proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN); //number of phisycial processors 
     size_t var_size = (size_t)(sizeof(struct stats_cpu) * (proc_num)); //size of the aray of stats_cpu structures
@@ -177,10 +176,6 @@ void analyze_stats (an_args *args)
     //main analyzer thread loop
     while (t)
     {
-        if(analyzer_last_activity - secondT > 10)
-        {
-            sleep(5);
-        }
         analyzer_last_activity = time(NULL);
         clock_gettime(CLOCK_REALTIME, &a_timeout); //acquire current time
         a_timeout.tv_sec += THREAD_TIMEOUT; //add thread timeout time to current time
