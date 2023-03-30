@@ -18,6 +18,7 @@ void logger_main (void)
 {
     while(l)
     {
+        sleep(1);
         fflush(lfp);
     }
 }
@@ -40,9 +41,9 @@ void logger_init(void)
 void log_line(char line[LOG_LINE])
 {
 
-    fprintf(lfp, "%d", (int)(stamp - time(NULL)));
+    fprintf(lfp, "%d ", (int)(time(NULL) - stamp));
     pthread_mutex_lock(&log_conch);
-    fprintf(lfp, "%s", line);
+    fprintf(lfp, "%s \n", line);
     pthread_mutex_unlock(&log_conch);
 }
 

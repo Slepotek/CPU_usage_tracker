@@ -24,7 +24,7 @@ add_subdirectory(lib/buffer)
 add_subdirectory(lib/analyzer)
 add_subdirectory(lib/printer)
 #add_subdirectory(lib/watchdog)
-#add_subdirectory(lib/logger)
+add_subdirectory(lib/logger)
 
 #Define library target for reader
 add_library(main_p_lib src/main_p.c)
@@ -38,7 +38,7 @@ add_executable(CPUsageTracker ${PROJECT_SOURCE_DIR}/src/main.c)
 #link libraries
 target_link_libraries(CPUsageTracker 
     main_p_lib
-    #logger_lib
+    logger_lib
 )
 
 target_link_libraries(main_p_lib 

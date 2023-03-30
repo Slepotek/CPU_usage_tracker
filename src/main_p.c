@@ -10,6 +10,7 @@
 #include "../lib/buffer/buffer.h"
 #include "../lib/analyzer/analyzer.h"
 #include "../lib/printer/printer.h"
+#include "../lib/logger/logger.h"
 
 static ring_buffer* stat_buffer; //buffer for stats
 static ring_buffer* res_buffer; //buffer for results
@@ -32,73 +33,92 @@ static struct sigaction actionINT;//decalre sigaction structure (for SIGTERM)
 
 void terminate (int sigint) //leaved to expand functionality of this app
 {
+    log_line("Terminating application");
     t = 0;
     w = 0;
 }
 
 void destroy_leftovers(void)
 {
+    log_line("In destroy_leftovers");
     //destroy semaphores and mutex
+    log_line("stat_buffer access control destroy");
     sem_destroy(&empty);
     sem_destroy(&full);
     pthread_mutex_destroy(&conch);
 
+    log_line("res_buffer access control destroy");
     sem_destroy(&empty_r);
     sem_destroy(&full_r);
     pthread_mutex_destroy(&conch_r);
 
+    log_line("freeing buffer memory");
     //free alocated memory
     ring_buffer_free(stat_buffer);
     ring_buffer_free(res_buffer);
+    log_line("freeing analyzer args buffer");
     free(pass);
 }
 
 void initialize_program_variables(void)
 {
+    log_line("Initializing atomic variables");
     w = 1;
     t = 1;
     printf("Enetring initialization process\n");
-
+    
+    log_line("Setting a SIGTERM sigaction");
     memset(&actionTERM, 0, sizeof(struct sigaction));//clear the sigaction structure memory
     actionTERM.sa_handler = terminate; //assign a function to this action handler
     sigaction(SIGTERM, &actionTERM, NULL);//assign a signal value to the action structure
 
+    log_line("Setting a SIGINT sigaction");
     memset(&actionINT, 0, sizeof(struct sigaction));//clear the sigaction structure memory
     actionINT.sa_handler = terminate; //assign a function to this action handler
     sigaction(SIGINT, &actionINT, NULL);//assign a signal value to the action structure
     
     //buffers initialization
     printf("Allocating the buffer\n");
-
+    log_line("stat_buffer alocating memory");
     stat_buffer = (ring_buffer*)malloc(sizeof(ring_buffer));//memmory allocation
     if(stat_buffer == NULL)//check if the memmory was alocated
     {
+        log_line("stat_buffer was unable to allocate memory. Out of heap memory?");
         perror("NULL exception in malloc\n");
     }
+    log_line("Initializing stat_buffer");
     stats_ring_buffer_init(stat_buffer); //initialize stats ring buffer
 
+    log_line("res_buffer alocating memory");
     res_buffer = (ring_buffer*)malloc(sizeof(ring_buffer));//memmory allocation
     if(res_buffer == NULL)//check if the memory was alocated
     {
+        log_line("res_buffer was unable to allocate memory. Out of heap memory?");
         perror("NULL exception in malloc\n");
     }
+    log_line("Initializing res_buffer");
     res_ring_buffer_init(res_buffer);//initialize results ring buffer
 
+    log_line("pass buffer allocating memory");
     pass = (an_args*)malloc(sizeof(an_args));//allocate memory for args structure (arguments for analyze_stats procedure)
     if(pass == NULL)//check if the memory was alocated
     {
+        log_line("pass buffer was unable to allocate memory. Out of heap memory?");
         perror("NULL exception in malloc\n");
     }
+    log_line("Initializing pass buffer");
     pass->res_buff = res_buffer;//assign res_buffer pointer to args
     pass->stat_buff = stat_buffer;//assign stat_buffer pointer to args
     //buffers initialization end
     
+    log_line("Initilize stat_buffer access control variables");
     //stats_cpu buffer sem and mutex
     sem_init(&empty, 0, BUFFER_SIZE - 1); //initialize the semaphore variable (empty slots in buffer)
     sem_init(&full, 0, 0); //initialize the semaphore variable (full slots in buffer)
     pthread_mutex_init(&conch, NULL); //initialize the mutex
 
     //results buffer sem and mutex
+    log_line("Initialize res_buffer access controle variables");
     sem_init(&empty_r, 0, BUFFER_SIZE - 1); //initialize the semaphore variable (empty slots in buffer)
     sem_init(&full_r, 0, 0); //initialize the semaphore variable (full slots in buffer)
     pthread_mutex_init(&conch_r, NULL); //initialize the mutex
@@ -108,6 +128,7 @@ void initialize_program_variables(void)
 /// @param buff buffer with stats structure
 void reader_procedure(ring_buffer *buff)
 {   
+    log_line("Starting readed procedure");
     reader_last_activity = time(NULL);
     //thread timeout initialization
     struct timespec r_timeout;
@@ -117,7 +138,12 @@ void reader_procedure(ring_buffer *buff)
     double cpu_time_used; //time passed in the procedure 
     double one_sec = WINDOW_TIME; //window time in secs
     struct stats_cpu *temp_d = (struct stats_cpu*)malloc(sizeof(struct stats_cpu) * proc_num); //initialize the temp variable for data 
-    
+    if(temp_d == NULL)
+    {
+        log_line("temp_d was unable to allocate memory. Out of heap memory?");
+        perror("Could not allocate memory for temporary variable");
+    }
+    log_line("Entering main reader lopp");
     while(t)
     {
         reader_last_activity = time(NULL);
@@ -131,11 +157,13 @@ void reader_procedure(ring_buffer *buff)
         sem_wait(&empty);//set semaphore (decrement number of empty slots in buffer)
         if(pthread_mutex_timedlock(&conch, &r_timeout) == 0) //set mutex 
         {
+            log_line("successfully acquired stat_buffer lock");
             ring_buffer_push(buff, temp_d);//put data into buffer
             pthread_mutex_unlock(&conch);//unlock mutex
         }
         else
         {
+            log_line("could not lock mutex on stat_buffer ");
             pthread_mutex_unlock(&conch);
             //TODO:Log message that thread timed out while trying to acquire mutex
         }
@@ -316,7 +344,7 @@ void watchdog_watch(void)
     while(w)
     {
         time_t timestamp = time(NULL);
-        if(timestamp - reader_last_activity > TIMEOUT )
+        if((timestamp - reader_last_activity) > TIMEOUT )
         {
             //this will gently close the application
             terminate(1);
@@ -324,7 +352,7 @@ void watchdog_watch(void)
             puts("ERROR: TIMEOUT - Application closed due to thread time out.");
 
         }
-        if(timestamp - analyzer_last_activity > TIMEOUT )
+        if((timestamp - analyzer_last_activity) > TIMEOUT )
         {
             //this will gently close the application
             terminate(1);
@@ -332,7 +360,7 @@ void watchdog_watch(void)
             puts("ERROR: TIMEOUT - Application closed due to thread time out.");
 
         }
-        if(timestamp - printer_last_activity > TIMEOUT )
+        if((timestamp - printer_last_activity) > TIMEOUT )
         {
             //this will gently close the application
             terminate(1);

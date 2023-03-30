@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "buffer.h"
 #include "../../src/structures.h"
+#include "../logger/logger.h"
 
 //TODO:write functions descriptions
 
@@ -39,6 +40,7 @@ void res_ring_buffer_init(ring_buffer* rb)
 /// @param rb pointer to given ring_buffer
 void ring_buffer_free(ring_buffer* rb)
 {
+    log_line("Freeing buffer ");
     free(rb->buffer);
     free(rb);
 }
@@ -62,7 +64,7 @@ void ring_buffer_push(ring_buffer* rb, const void* item)
         memcpy(rb->head, item, rb->size);//firstly copy the data to the head address
         rb->head = rb->buffer; //move the buffer head to the begining of the buffer
         //buffer is full 
-        //TODO: Log message that buffer is full
+        log_line("Buffer is full"); 
     }
     else //if not
     {
@@ -77,7 +79,7 @@ void ring_buffer_pop(ring_buffer* rb, void* item)
     if(rb->count == 0) //if no elements in the buffer 
     {
         //the buffer is empty 
-        //TODO: Log message that buffer is empty
+        log_line("Buffer is empty ");
         return;//simply return
     }
     //if there are elements in the buffer

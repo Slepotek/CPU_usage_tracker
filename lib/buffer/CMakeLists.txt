@@ -11,4 +11,5 @@ add_executable(buffer_test ${PROJECT_SOURCE_DIR}/lib/buffer/test_buffer.c)
 #Link the test executable with the program to test
 target_link_libraries(buffer_test 
     buffer_lib
+    logger_lib
 )
