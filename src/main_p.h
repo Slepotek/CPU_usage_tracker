@@ -5,7 +5,7 @@
 #define TIMEOUT 4
 #define THREAD_TIMEOUT 8 //this one should be always bigger number than TIMEOUT macro
 
-extern pthread_t reader, analyzer, printer, logger, watchdog, inputer; //threads are external (linked to main - althought they didn't had to but i think it is more readable this way)
+extern pthread_t reader, analyzer, printer, logger, watchdog; //threads are external (linked to main - althought they didn't had to but i think it is more readable this way)
 extern volatile sig_atomic_t w;
 
 

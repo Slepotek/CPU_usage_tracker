@@ -8,11 +8,13 @@
 #include <unistd.h>
 #include "reader.h"
 #include "../../src/structures.h"
+#include "../logger/logger.h"
 int test;//global test variable used in test_reader.c 
 
 
 void read_stats(struct stats_cpu* _data)
 {
+    log_line("Start reading /proc/stat file...");
     FILE *fp;    //file structure (allocating memory for the structure to prevent sigsegv)
     struct stats_cpu* idata;            //interfacing structure
     int num_proc = 0;                   //number of procesor (first structure is global, next one is cpu0)
@@ -30,14 +32,16 @@ void read_stats(struct stats_cpu* _data)
     //if this is not a test then read real data
     else
     {
+        log_line("Open file...");
         if((fp = fopen(STAT, "r")) == NULL) //open file and check if it opened
         {
+            log_line("Reader was unable to open /proc/stat file");
             perror("Program was unable to open the /proc/stat file"); 
-            exit(0);
         }
     }
-    while(fgets(line, sizeof(line), fp) != NULL) //get one line of the file (it doesn't have to be 8192 but usualy is)
+    while(fgets(line, sizeof(line), fp) != NULL) //get one line of the file (it doesn't have to be 8192 but that is safe amount)
     {
+        log_line("Get one line");
         if(!strncmp(line, "cpu ", 4)) //the first entry in proc stat has to get 4 char's
         {
             continue; //skip the global element
@@ -65,6 +69,7 @@ void read_stats(struct stats_cpu* _data)
         }
         else if(!strncmp(line, "intr", 4))//if relevant data are passed
         {
+            log_line("File was read, closing");
             fclose(fp);//close the file stream
             break;//break the loop
         }

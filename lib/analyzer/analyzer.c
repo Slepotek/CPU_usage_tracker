@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "analyzer.h"
 #include "../../src/structures.h"
+#include "../logger/logger.h"
 
 /// @brief compute the usage percentage of every cpu
 /// @param data0 previous data
@@ -11,6 +12,7 @@
 /// @param results array of results for each cpu
 void analyzer_compute(struct stats_cpu *data0, struct stats_cpu *data1, u_int *results)
 {
+    log_line("Analysis start...");
     int proc_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
     for(int i = 0; i < proc_num; i++)
     {
@@ -41,5 +43,6 @@ void analyzer_compute(struct stats_cpu *data0, struct stats_cpu *data1, u_int *r
             data1++;
         }
     }
+    log_line("Analysis end...");
     return;
 }

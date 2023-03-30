@@ -22,13 +22,14 @@ int main(void)
     log_line("Components initialized ");
 
     log_line("Starting threads");
-    pthread_create(&reader, NULL, read_proc , NULL); //run the reader thread (the warning about bad conversion type can be overcomed by creating explicit function calling the base function - redundant code)
-    log_line("Reader thread started");
+    pthread_create(&printer, NULL, print_proc, NULL);//run print thread
+    log_line("Printer thread started");
     pthread_create(&analyzer, NULL, analyze_proc, NULL);//run analyzer thread
     log_line("Analyzer thread started");
-    pthread_create(&printer, NULL, print_proc, NULL);//run print thread
-    log_line("Watchdog thread started");
+    pthread_create(&reader, NULL, read_proc , NULL); //run the reader thread (the warning about bad conversion type can be overcomed by creating explicit function calling the base function - redundant code)
+    log_line("Reader thread started");
     pthread_create(&watchdog, NULL, watchdog_proc, NULL);
+    log_line("Watchdog thread started");
 
     log_line("Going into main loop");
     //wait for the thread to finish

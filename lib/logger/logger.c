@@ -5,6 +5,8 @@
 #include <signal.h>
 #include <time.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <syscall.h>
 #include "logger.h"
 
 
@@ -13,11 +15,13 @@ static char log_buffer[LOG_LINE];
 static FILE *lfp;
 static sig_atomic_t l;
 static time_t stamp;
+time_t logger_last_activity;
 
 void logger_main (void)
 {
     while(l)
     {
+        logger_last_activity = time(NULL);
         sleep(1);
         fflush(lfp);
     }
@@ -40,8 +44,8 @@ void logger_init(void)
 /// @param line string to log
 void log_line(char line[LOG_LINE])
 {
-
-    fprintf(lfp, "%d ", (int)(time(NULL) - stamp));
+    fprintf(lfp, "Thread ID: %d",syscall(__NR_gettid));
+    fprintf(lfp, " time: %d ", (int)(time(NULL) - stamp));
     pthread_mutex_lock(&log_conch);
     fprintf(lfp, "%s \n", line);
     pthread_mutex_unlock(&log_conch);

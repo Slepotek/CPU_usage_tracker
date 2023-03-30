@@ -14,6 +14,11 @@ void stats_ring_buffer_init(ring_buffer* rb)
 {
     unsigned long proc_nr = (u_long)sysconf(_SC_NPROCESSORS_ONLN); //i know, a shortcut here, but time is an essence 
     rb->buffer = malloc((sizeof(struct stats_cpu) * (u_long)(proc_nr)) * BUFFER_SIZE); //alocating memmory (array * number_of_procesors) * size_of_the_buffer
+    if(rb->buffer == NULL)
+    {
+        perror("Error allocatin memory for the buffer");
+        log_line("Could not allocate memory for the stats_buffer. Out of heap memory?");
+    }
     rb->buffer_end = (char*)rb->buffer + ((sizeof(struct stats_cpu) * (u_long)(proc_nr)) * BUFFER_SIZE);//last address of the buffer
     rb->capacity = BUFFER_SIZE; //defined length of 4 elements in the buffer (can be more - set it in heder file)
     rb->count = 0; //number of elements currently residing in the buffer
@@ -28,6 +33,11 @@ void res_ring_buffer_init(ring_buffer* rb)
 {
     unsigned long proc_nr = (u_long)sysconf(_SC_NPROCESSORS_ONLN); //i know, a shortcut here, but time is an essence 
     rb->buffer = malloc((sizeof(struct stats_cpu) * (u_long)(proc_nr)) * BUFFER_SIZE); //alocating memmory (array * number_of_procesors) * size_of_the_buffer
+    if(rb->buffer == NULL)
+    {
+        perror("Error allocatin memory for the buffer");
+        log_line("Could not allocate memory for the res_buffer. Out of heap memory?");
+    }
     rb->buffer_end = (char*)rb->buffer + ((sizeof(u_int) * (u_long)(proc_nr)) * BUFFER_SIZE);//last address of the buffer
     rb->capacity = BUFFER_SIZE; //defined length of 4 elements in the buffer (can be more - set it in heder file)
     rb->count = 0; //number of elements currently residing in the buffer
@@ -43,6 +53,7 @@ void ring_buffer_free(ring_buffer* rb)
     log_line("Freeing buffer ");
     free(rb->buffer);
     free(rb);
+    log_line("Buffer freed");
 }
 
 /// @brief Internal ring buffer structure function to move pointer to next address
