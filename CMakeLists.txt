@@ -5,8 +5,6 @@ cmake_minimum_required(VERSION 3.5)
 project(CPUsageTracker LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 
-
-
 #Set the C compiler for the environment variable CC
 if(DEFINED ENV{CC})
     #acquire the compiler from CC variable
@@ -23,7 +21,7 @@ add_subdirectory(lib/reader)
 add_subdirectory(lib/buffer)
 add_subdirectory(lib/analyzer)
 add_subdirectory(lib/printer)
-#add_subdirectory(lib/watchdog)
+add_subdirectory(lib/watchdog)
 add_subdirectory(lib/logger)
 
 #Define library target for reader
@@ -46,6 +44,7 @@ target_link_libraries(main_p_lib
     reader_lib
     printer_lib
     buffer_lib
+    watchdog_lib
 )
 
 #TESTS

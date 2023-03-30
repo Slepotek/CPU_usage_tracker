@@ -6,6 +6,7 @@ target_include_directories(reader_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURREN
 
 target_link_libraries(reader_lib 
     logger_lib
+    main_p_lib
 )
 
 #TEST implementation

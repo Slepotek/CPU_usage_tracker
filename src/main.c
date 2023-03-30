@@ -22,13 +22,13 @@ int main(void)
     log_line("Components initialized ");
 
     log_line("Starting threads");
-    pthread_create(&printer, NULL, print_proc, NULL);//run print thread
+    pthread_create(&printer, NULL, &print_stats, NULL);//run print thread
     log_line("Printer thread started");
-    pthread_create(&analyzer, NULL, analyze_proc, NULL);//run analyzer thread
+    pthread_create(&analyzer, NULL, &analyze_stats, NULL);//run analyzer thread
     log_line("Analyzer thread started");
-    pthread_create(&reader, NULL, read_proc , NULL); //run the reader thread (the warning about bad conversion type can be overcomed by creating explicit function calling the base function - redundant code)
+    pthread_create(&reader, NULL, &reader_procedure, NULL); //run the reader thread (the warning about bad conversion type can be overcomed by creating explicit function calling the base function - redundant code)
     log_line("Reader thread started");
-    pthread_create(&watchdog, NULL, watchdog_proc, NULL);
+    pthread_create(&watchdog, NULL, &watchdog_watch, NULL);
     log_line("Watchdog thread started");
 
     log_line("Going into main loop");
@@ -53,18 +53,11 @@ int main(void)
     destroy_leftovers();
     log_line("Variables destroyed");
 
-    logger_destroy();
-    pthread_join(logger, NULL);
+    while(logger_destroy() != 0);
     printf("Logger closed\n");
     printf("Resources freed\n");
     printf("Closed.\n");
     return 0;
-}
-
-void* watchdog_proc (void *s)
-{
-    watchdog_watch();
-    return s;
 }
 
 void* logger_proc(void *s)

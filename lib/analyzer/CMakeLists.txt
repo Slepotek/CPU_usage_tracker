@@ -6,6 +6,7 @@ target_include_directories(analyzer_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURR
 
 target_link_libraries(analyzer_lib 
     logger_lib
+    buffer_lib
 )
 
 #TEST implementation

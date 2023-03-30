@@ -1,37 +1,31 @@
-#pragma once //in other words #ifndef MAIN.H, #define MAIN.H
+#pragma once //in other words #ifndef MAIN_P.H, #define MAIN_P.H
 #include "structures.h"
 #include <signal.h>
-#define WINDOW_TIME 2
-#define TIMEOUT 4
-#define THREAD_TIMEOUT 8 //this one should be always bigger number than TIMEOUT macro
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <time.h>
 
-extern pthread_t reader, analyzer, printer, logger, watchdog; //threads are external (linked to main - althought they didn't had to but i think it is more readable this way)
+//EXTERNALS provided by the main_p
+extern sem_t empty, full, empty_r, full_r;
+extern pthread_mutex_t conch, conch_r;
+extern pthread_t reader, analyzer, printer, logger, watchdog; //thread descriptors
 extern volatile sig_atomic_t w;
+extern volatile sig_atomic_t t;
 
+void* reader_procedure(void *s);
 
-//TODO: write implementation comment
-void reader_procedure(ring_buffer *buff);
+void* analyze_stats (void *s);
 
-void analyze_stats (an_args *args);
+void* print_stats(void *s);
 
-void print_stats(ring_buffer *buff);
-
-void initialize_stats_var (struct stats_cpu *var, u_ll val);
-
-void* analyze_proc (void *s);
-
-void* read_proc (void *s);
-
-void* print_proc (void *s);
-
-void terminate (int sigint);
+void* watchdog_watch(void*);
 
 void initialize_program_variables(void);
 
 void destroy_leftovers(void);
-
-void watchdog_watch(void);
-
-// void inputer_check(void);
 
 

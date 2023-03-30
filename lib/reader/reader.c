@@ -1,25 +1,36 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <unistd.h>
 #include "reader.h"
-#include "../../src/structures.h"
 #include "../logger/logger.h"
-int test;//global test variable used in test_reader.c 
+#include "../buffer/buffer.h"
+#include "../watchdog/watchdog.h"
+#include "../../src/main_p.h"
 
+//EXTERNAL VARIABLES
+int test;                       //global test variable used in test_reader.c 
+time_t reader_last_activity;    //activity variable for watchdog
+extern volatile sig_atomic_t t;          //reader main loop index
+extern sem_t empty, full;       //semaphores for the stats_buffer
+extern pthread_mutex_t conch;   //mutex for the stats_buffer
+/********************/
 
-void read_stats(struct stats_cpu* _data)
+//INTERNAL VARIABLES
+static clock_t start, end;             //clock variables
+static double cpu_time_used;           //time passed in the procedure 
+static struct timespec r_timeout;      //thread timeout structure
+static size_t proc_num;                //number of processors
+static double one_sec;                 //data read window time variable
+static struct stats_cpu *temp_d;       //temporary variable to store read data
+static FILE *fp;                       //file structure (allocating memory for the structure to prevent sigsegv)
+static struct stats_cpu* idata;        //interfacing structure
+static int num_proc = 0;               //number of procesor (first structure is global, next one is cpu0)
+static struct stats_cpu sc;            //helper structure
+static char line[8192];                //there is a good chance that this size is equal to two memory pages and it is the most optimal for this task
+/********************/
+
+/// @brief Reads /proc/stat file and puts the data at the _data address
+/// @param _data address where to put data read from the /proc/stat file
+void read_stats(struct stats_cpu* _data) //function is not static because test_reader.c is using it
 {
     log_line("Start reading /proc/stat file...");
-    FILE *fp;    //file structure (allocating memory for the structure to prevent sigsegv)
-    struct stats_cpu* idata;            //interfacing structure
-    int num_proc = 0;                   //number of procesor (first structure is global, next one is cpu0)
-    struct stats_cpu sc;                //helper structure
-    char line[8192];                    //there is a good chance that this size is equal to two memory pages and it is the most optimal for this task
     //check for test conditions
     if(test == 1)
     {
@@ -33,20 +44,25 @@ void read_stats(struct stats_cpu* _data)
     else
     {
         log_line("Open file...");
-        if((fp = fopen(STAT, "r")) == NULL) //open file and check if it opened
+        //open file and check if it opened
+        if((fp = fopen(STAT, "r")) == NULL) 
         {
             log_line("Reader was unable to open /proc/stat file");
             perror("Program was unable to open the /proc/stat file"); 
         }
     }
-    while(fgets(line, sizeof(line), fp) != NULL) //get one line of the file (it doesn't have to be 8192 but that is safe amount)
+    //get one line of the file (it doesn't have to be 8192 but that is safe amount)
+    while(fgets(line, sizeof(line), fp) != NULL) 
     {
         log_line("Get one line");
-        if(!strncmp(line, "cpu ", 4)) //the first entry in proc stat has to get 4 char's
+        //the first entry in proc stat has to get 4 char's
+        if(!strncmp(line, "cpu ", 4)) 
         {
-            continue; //skip the global element
+            //skip the global element
+            continue; 
         }
-        else if(!strncmp(line, "cpu", 3))//the rest of the entries only need 3
+        //the rest of the entries only need 3
+        else if(!strncmp(line, "cpu", 3))
         {
             //zeroize sc structure
             memset(&sc, 0, STATS_CPU_SIZE);
@@ -63,15 +79,86 @@ void read_stats(struct stats_cpu* _data)
                 &sc.cpu_softirq,
                 &sc.cpu_steal,
                 &sc.cpu_guest,
-                &sc.cpu_guest_nice);
-            idata = _data + num_proc;//give the interface variable address of the appropirate index at _data array (array of stats_cpu)
-            *idata = sc;//paste the data of sc at the address pointed by idata
+                &sc.cpu_guest_nice
+            );
+            //give the interface variable address of the appropirate index at _data array (array of stats_cpu)
+            idata = _data + num_proc;
+            //paste the data of sc at the address pointed by idata
+            *idata = sc;
         }
-        else if(!strncmp(line, "intr", 4))//if relevant data are passed
+        //if no relevant data are passed
+        else if(!strncmp(line, "intr", 4))
         {
             log_line("File was read, closing");
-            fclose(fp);//close the file stream
-            break;//break the loop
+            fclose(fp);     //close the file stream
+            break;          //break the loop
         }
     }
+}
+/// @brief Initialize the reader procedure variables
+void reader_init (void)
+{
+    reader_last_activity = time(NULL);                                          //first read out so that watchdog won't fire off too early
+    proc_num = (size_t)sysconf(_SC_NPROCESSORS_ONLN);                           //number of phisycial processors 
+    one_sec = WINDOW_TIME;                                                      //window time in secs
+    temp_d = (struct stats_cpu*)malloc(sizeof(struct stats_cpu) * proc_num);    //initialize the temp variable for data 
+    if(temp_d == NULL)
+    {
+        log_line("temp_d was unable to allocate memory. Out of heap memory?");
+        perror("Could not allocate memory for temporary variable");
+    }
+}
+
+/// @brief Start the main reader loop
+/// @param buff the ring buffer to witch /proc/stat data is to be copied
+void reader_main (ring_buffer *buff)
+{
+    log_line("Entering main reader lopp");
+    while(t)
+    {
+        //log the loop start time for watchdog
+        reader_last_activity = time(NULL); 
+        //get time for timed semaphore and mutex
+        clock_gettime(CLOCK_REALTIME, &r_timeout); 
+        r_timeout.tv_sec += THREAD_TIMEOUT;
+        //the clock is used to match exactly 1 second window of mesurement
+        //start the clock count
+        start = clock();
+        //trigger /proc/stat file reading (no access controll - used only by one thread)
+        read_stats(temp_d);
+        //set semaphore (decrement number of empty slots in buffer)
+        sem_wait(&empty);
+        //set mutex 
+        if(pthread_mutex_timedlock(&conch, &r_timeout) == 0) 
+        {
+            log_line("successfully acquired stat_buffer lock");
+            ring_buffer_push(buff, temp_d);//put data into buffer
+            pthread_mutex_unlock(&conch);//unlock mutex
+        }
+        else
+        {
+            log_line("could not lock mutex on stat_buffer ");
+            pthread_mutex_unlock(&conch);
+        }
+        //set semaphore (increment the number of full buffer slots)
+        sem_post(&full);
+        //stop the clock
+        end = clock();
+        //compute the overal time that reading file and pushing to buffer took
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC; 
+        if(cpu_time_used <= one_sec)
+        {
+            //sleep for the period left to 1 sec if operations took less than 1 sec
+            usleep((__useconds_t)((one_sec-cpu_time_used)*100000)); 
+        }
+    }
+
+}
+
+/// @brief Clear memory allocated for reader
+void reader_destroy(void)
+{
+    //free alocated memory if the thread stops
+    free(temp_d);
+    printf("Reader is finishing execution\n");
 }

@@ -1,12 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include "buffer.h"
-#include "../../src/structures.h"
 #include "../logger/logger.h"
 
-//TODO:write functions descriptions
 
 /// @brief Initializes ring_buffer structure to store stats_cpu arrays
 /// @param rb pointer to given ring_buffer
@@ -85,6 +79,9 @@ void ring_buffer_push(ring_buffer* rb, const void* item)
     ++rb->count;//increment the element count in the buffer (it never comes to 4 - althought that is the given capacity but this is to aassure memory sefty)
 }
 
+/// @brief Pop data from ring_buffer structure
+/// @param rb given ring_buffer pointer
+/// @param item pointer to the data where data from buffer is to be inserted
 void ring_buffer_pop(ring_buffer* rb, void* item)
 {
     if(rb->count == 0) //if no elements in the buffer 
