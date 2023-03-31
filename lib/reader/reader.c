@@ -5,7 +5,7 @@
 #include "../../src/main_p.h"
 
 //EXTERNAL VARIABLES
-int test;                       //global test variable used in test_reader.c 
+int test;
 time_t reader_last_activity;    //activity variable for watchdog
 extern volatile sig_atomic_t t;          //reader main loop index
 extern sem_t empty, full;       //semaphores for the stats_buffer
@@ -31,20 +31,20 @@ static char line[8192];                //there is a good chance that this size i
 void read_stats(struct stats_cpu* _data) //function is not static because test_reader.c is using it
 {
     log_line("Start reading /proc/stat file...");
-    //check for test conditions
-    if(test == 1)
+    //if this is not a test then read real data
+
+    log_line("Open file...");
+    //open file and check if it opened
+    if(test)
     {
-        if((fp = fopen("/home/marcel/Code/CPU_usage_tracker/build/lib/reader/test_text", "r")) == NULL)
+        if((fp = fopen("test_text", "r")) == NULL)
         {
-            perror("Program was unable to open the /proc/stat file"); 
-            return;
+            log_line("Reader was unable to open test_text file");
+            perror("Program was unable to open the test_text file"); 
         }
     }
-    //if this is not a test then read real data
     else
     {
-        log_line("Open file...");
-        //open file and check if it opened
         if((fp = fopen(STAT, "r")) == NULL) 
         {
             log_line("Reader was unable to open /proc/stat file");

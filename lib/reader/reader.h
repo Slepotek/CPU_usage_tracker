@@ -24,4 +24,5 @@ void reader_main (ring_buffer *buff);
 void reader_destroy(void);
 
 void read_stats(struct stats_cpu* _data);
+void read_stats_test(struct stats_cpu* _data);
 

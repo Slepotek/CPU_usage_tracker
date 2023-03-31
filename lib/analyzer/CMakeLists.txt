@@ -16,4 +16,5 @@ add_executable(analyzer_test ${PROJECT_SOURCE_DIR}/lib/analyzer/test_analyzer.c)
 #Link the test executable with the program to test
 target_link_libraries(analyzer_test 
     analyzer_lib
+    logger_lib
 )

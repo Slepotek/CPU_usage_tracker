@@ -8,19 +8,21 @@
 #include "buffer.h"
 #include "test_buffer.h"
 #include "../../src/structures.h"
+#include "../logger/logger.h"
 
 static sem_t empty, full;
 static pthread_mutex_t conch;
 static pthread_t producer, consumer;
 static struct stats_cpu *test_var;
+struct stats_cpu *istat;
 
 int main (void)
 {
+    logger_init();
     //TEST Initialization
     size_t m_buff_size = sizeof(ring_buffer);
     ring_buffer *rb = malloc(m_buff_size);
     test_var = malloc(sizeof(struct stats_cpu));
-    memset(rb, 0, m_buff_size);
     stats_ring_buffer_init(rb);
     
     sem_init(&empty, 0, BUFFER_SIZE);
@@ -48,7 +50,8 @@ int main (void)
     sem_destroy(&full);
     pthread_mutex_destroy(&conch);
 
-    ring_buffer_free(rb);
+    logger_destroy();
+    //ring_buffer_free(rb);
     free(test_var);
     printf("Ring buffer test succesfull\n");
 }
@@ -69,7 +72,7 @@ void* producerSeq (ring_buffer *rb)
 
 void* consumerSeq (ring_buffer *rb)
 {
-    struct stats_cpu *istat = malloc(sizeof(struct stats_cpu));
+    istat = malloc(sizeof(struct stats_cpu));
     for(int i = 0; i <= 100; i++)
     {
         sem_wait(&full);

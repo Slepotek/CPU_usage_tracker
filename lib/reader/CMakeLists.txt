@@ -8,13 +8,15 @@ target_link_libraries(reader_lib
     logger_lib
     main_p_lib
 )
-
 #TEST implementation
 #add executable
 add_executable(reader_test ${PROJECT_SOURCE_DIR}/lib/reader/test_reader.c)
-
 #Link the test executable with the program to test
-target_link_libraries(reader_test reader_lib)
+target_link_libraries(reader_test 
+    reader_lib
+    logger_lib
+)
+
 #move neccessary test_text to build directory
 add_custom_command(
     TARGET reader_test

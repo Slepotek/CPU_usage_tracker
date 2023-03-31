@@ -5,15 +5,18 @@
 #include <unistd.h>
 #include "reader.h"
 #include "../../src/structures.h"
-
+#include "../logger/logger.h"
 extern int test;
 
 int main (void)
 {
-    test = 1;
+    logger_init();
     printf("Running a reader test\n");
-    struct stats_cpu *test_var = (struct stats_cpu *)malloc(sizeof(struct stats_cpu) * (u_long)sysconf(_SC_NPROCESSORS_ONLN));
+    struct stats_cpu *test_var;
+    test_var = (struct stats_cpu *)malloc(sizeof(struct stats_cpu) * (u_long)sysconf(_SC_NPROCESSORS_ONLN));
+    test = 1;
     read_stats(test_var);
+    logger_destroy();
     //Test 1
     int user = (int)test_var->cpu_user;
     assert(user == 25982);

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "analyzer.h"
 #include "../../src/structures.h"
+#include "../logger/logger.h"
 
 
 int main (void)
@@ -84,13 +85,16 @@ int main (void)
     
     u_int results[proc_num];
 
+    logger_init();
+    analyzer_init();
     analyzer_compute(test_var, test_var2, &results[0]);
     for(int i = 0; i < proc_num; i++)
     {
         assert(results[i] == 75);
     }
     analyzer_compute(test_var0, test_var1, &results[0]);
-
+    analyzer_destroy();
+    logger_destroy();
     /*
      *  Algorithm by Vangelis Tasoulas 2014
      *  https://stackoverflow.com/questions/23367857/accurate-calculation-of-cpu-usage-given-in-percentage-in-linux
