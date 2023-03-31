@@ -10,6 +10,7 @@ extern int test;
 
 int main (void)
 {
+    test = 1;
     logger_init();
     printf("Running a reader test\n");
     struct stats_cpu *test_var;

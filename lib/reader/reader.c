@@ -37,7 +37,11 @@ void read_stats(struct stats_cpu* _data) //function is not static because test_r
     //open file and check if it opened
     if(test)
     {
-        if((fp = fopen("test_text", "r")) == NULL)
+        char currentDir[FILENAME_MAX];
+        getcwd(currentDir, FILENAME_MAX);
+        char path [FILENAME_MAX];
+        snprintf(path, FILENAME_MAX, "%s/test_text", currentDir);
+        if((fp = fopen(path, "r")) == NULL)
         {
             log_line("Reader was unable to open test_text file");
             perror("Program was unable to open the test_text file"); 
