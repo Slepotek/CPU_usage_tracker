@@ -124,27 +124,27 @@ void printer_destroy(void)
     puts("Printer is closing");
 }
 
-/// @brief Function to return proper escape sequence to given terminal
-/// @return proper escape sequence matched to the terminal
-static const char* clear_screen_sequence(void)
-{
-    // Get the value of the TERM environment variable
-    const char *term = getenv("TERM");
-    if (term == NULL) {
-        // The TERM environment variable is not set
-        perror("Error: TERM environment variable is not set\n");
-    }
+// /// @brief Function to return proper escape sequence to given terminal
+// /// @return proper escape sequence matched to the terminal
+// static const char* clear_screen_sequence(void)
+// {
+//     // Get the value of the TERM environment variable
+//     const char *term = getenv("TERM");
+//     if (term == NULL) {
+//         // The TERM environment variable is not set
+//         perror("Error: TERM environment variable is not set\n");
+//     }
     
-    // Return the appropriate escape sequence based on the terminal type
-    if (strcmp(term, "xterm") == 0) {
-        // Xterm terminal
-        return "\033[7;1H\033[J";
-    } else if (strcmp(term, "vt100") == 0) {
-        // VT100 terminal
-        return "\033[7;1H\033[J";
-    } else {
-        // Unknown terminal type
-        fprintf(stderr, "Error: unknown terminal type: %s\n", term);
-        exit(1);
-    }
-}
+//     // Return the appropriate escape sequence based on the terminal type
+//     if (strcmp(term, "xterm") == 0) {
+//         // Xterm terminal
+//         return "\033[7;1H\033[J";
+//     } else if (strcmp(term, "vt100") == 0) {
+//         // VT100 terminal
+//         return "\033[7;1H\033[J";
+//     } else {
+//         // Unknown terminal type
+//         fprintf(stderr, "Error: unknown terminal type: %s\n", term);
+//         exit(1);
+//     }
+// }

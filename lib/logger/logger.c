@@ -1,24 +1,31 @@
 #include "logger.h"
 #include "../../src/main_p.h"
 
+//EXTERNAL VARIABLES
+time_t logger_last_activity;
+/*******************/
+
+//INTERNAL VARIABLES
 static pthread_mutex_t log_conch;
 static short was_written;
 static FILE *lfp;
 static sig_atomic_t l;
 static time_t stamp;
-time_t logger_last_activity;
+/*******************/
 
+/// @brief Initialize logger procedure
 void logger_main (void)
 {
     while(l)
     {
+        //log timestamp for watchdog
         logger_last_activity = time(NULL);
         if(was_written)
         {
-            pthread_mutex_lock(&log_conch);
-            fflush(lfp);
-            pthread_mutex_unlock(&log_conch);
-            was_written = 0;   
+            pthread_mutex_lock(&log_conch);     //lock logger conch
+            fflush(lfp);                        //flush lfp stream
+            pthread_mutex_unlock(&log_conch);   //unlock logger conch
+            was_written = 0;                    //set flag that string was "100%" passed to file 
         }
     }
 }
@@ -38,7 +45,7 @@ void logger_init(void)
 
 /// @brief Log a line
 /// @param line string to log
-void log_line(char line[LOG_LINE])
+void log_line(char *line)
 {
     pthread_mutex_lock(&log_conch);
     fprintf(lfp, "Thread ID: %ld", syscall(__NR_gettid));

@@ -23,5 +23,5 @@ add_custom_command(
     POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/test_text"
-        "$<TARGET_FILE_DIR:reader_test>/test_text"
+        "$<TARGET_FILE_DIR:CPUsageTracker>/test_text"
 )

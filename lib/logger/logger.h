@@ -21,6 +21,6 @@
 extern time_t logger_last_activity;
 
 void logger_init(void);
-void log_line(char line[LOG_LINE]);
+void log_line(char *line);
 int logger_destroy(void);
 void logger_main (void);

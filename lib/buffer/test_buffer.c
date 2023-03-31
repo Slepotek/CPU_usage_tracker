@@ -14,7 +14,7 @@ static sem_t empty, full;
 static pthread_mutex_t conch;
 static pthread_t producer, consumer;
 static struct stats_cpu *test_var;
-struct stats_cpu *istat;
+static struct stats_cpu *istat;
 
 int main (void)
 {

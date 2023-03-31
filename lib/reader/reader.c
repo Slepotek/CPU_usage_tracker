@@ -24,6 +24,8 @@ static struct stats_cpu* idata;        //interfacing structure
 static int num_proc = 0;               //number of procesor (first structure is global, next one is cpu0)
 static struct stats_cpu sc;            //helper structure
 static char line[8192];                //there is a good chance that this size is equal to two memory pages and it is the most optimal for this task
+static char path [FILENAME_MAX];       //test variables used to universalise the path to test_text
+static char currentDir[FILENAME_MAX];
 /********************/
 
 /// @brief Reads /proc/stat file and puts the data at the _data address
@@ -37,14 +39,13 @@ void read_stats(struct stats_cpu* _data) //function is not static because test_r
     //open file and check if it opened
     if(test)
     {
-        char currentDir[FILENAME_MAX];
         getcwd(currentDir, FILENAME_MAX);
-        char path [FILENAME_MAX];
         snprintf(path, FILENAME_MAX, "%s/test_text", currentDir);
         if((fp = fopen(path, "r")) == NULL)
         {
             log_line("Reader was unable to open test_text file");
             perror("Program was unable to open the test_text file"); 
+            perror(path);
         }
     }
     else
