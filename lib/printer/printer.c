@@ -26,8 +26,8 @@ static void print_the_results (u_int *printArr)
 {
     log_line("Printing the results");
     sign = STAT_BAR_SIGN;
-    //TODO:diferentiate between termux and other terminals
-    //escape control sequence for TERMUX
+    //TODO:diferentiate between termux and other terminals (eventualy not neccessary here)
+    //escape control sequence for TERM (the fastest way)
     printf("\e[7;1H\e[J");
     for (int i = 0; i < (int)proc_num; i++)
     {

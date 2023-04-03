@@ -15,7 +15,6 @@ message("The compiler is ${CMAKE_C_COMPILER_ID}")
 
 #Include toolchain file with compiler specific flags
 include(${PROJECT_SOURCE_DIR}/toolchain.cmake)
-include(CTest)
 
 #add subdirectories
 add_subdirectory(lib/reader)
@@ -25,11 +24,11 @@ add_subdirectory(lib/printer)
 add_subdirectory(lib/watchdog)
 add_subdirectory(lib/logger)
 
-#Define library target for reader
+#Define library target for main_p
 add_library(main_p_lib src/main_p.c)
 
 #set include directory so that any *.h file will be visible to the compiler 
-target_include_directories(main_p_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>) #TODO: Think about adding install case
+target_include_directories(main_p_lib INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 #add the main executable
 add_executable(CPUsageTracker ${PROJECT_SOURCE_DIR}/src/main.c)

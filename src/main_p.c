@@ -40,14 +40,13 @@ void destroy_leftovers(void)
     //free alocated memory
     ring_buffer_free(stat_buffer);
     ring_buffer_free(res_buffer);
-
 }
 
 /// @brief Initializes globals used in the program
 void initialize_program_variables(void)
 {
     log_line("Initializing atomic variables");
-    w = 1;
+    w = 1;                                                      //driver variables
     t = 1;
     printf("Enetring initialization process\n");
     
@@ -98,7 +97,7 @@ void initialize_program_variables(void)
 }
 
 /// @brief Reader procedure - starts reading of the /proc/stat file, returns results to stats buffer and oversess access to stats buffer
-/// @param s pointer to pthread_join
+/// @param s pointer of pthread_t
 /// @return s pointer to pthread_join
 void* reader_procedure(void *s)
 {   
@@ -111,7 +110,7 @@ void* reader_procedure(void *s)
 
 
 /// @brief Analyzer procedure - starts stats computations and oversses the buffer's access
-/// @param s pointer to pthread_join
+/// @param s pointer of pthread_t
 /// @return s pointer to pthread_join
 void* analyze_stats (void *s)
 {   
@@ -123,7 +122,7 @@ void* analyze_stats (void *s)
 }
 
 /// @brief Printer procedure - prints the values of percentage for each CPU to the console
-/// @param s pointer to pthread_join
+/// @param s pointer of pthread_t
 /// @return s pointer to pthread_join
 void* print_stats(void *s)
 {
@@ -135,7 +134,7 @@ void* print_stats(void *s)
 }
 
 /// @brief Watchdog procedure - terminates execution of the program if one of threads times out
-/// @param s pointer to pthread_join
+/// @param s pointer of pthread_t
 /// @return s pointer to pthread_join
 void* watchdog_watch(void *s)
 {

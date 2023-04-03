@@ -2,9 +2,7 @@
 #include <time.h>
 //This header file is shared between all components (could be in shared folder)
 
-// #define u_int unsigned int
 #define u_ll unsigned long long
-// #define u_long unsigned long
 
 #define WINDOW_TIME 2 //window time for syncing procedures
 
